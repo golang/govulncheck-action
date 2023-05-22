@@ -1,10 +1,11 @@
 # GitHub Action for govulncheck
 
-This repository holds the GitHub Action for govulncheck. Govulncheck reports
-known vulnerabilities that affect Go code. It uses static analysis of source
-code or a binary's symbol table to narrow down reports to only those that could
-affect the application. You can read more about govulncheck at
-https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck.
+This repository holds the GitHub Action for govulncheck.
+
+[Govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) provides a
+low-noise, reliable way for Go users to learn about known vulnerabilities that
+may affect their dependencies. See details on [Go's support for vulnerability
+management](https://go.dev/blog/vuln).
 
 The govulncheck GitHub Action is currently experimental and is under active
 development.
@@ -15,27 +16,31 @@ To use the govulncheck GitHub Action add the following step to your workflow:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v1
+  uses: golang/govulncheck-action@v0.1.0
 ```
 
-By default the govulncheck Github Action will run with the latest version of Go
-using the ./... package path:
+By default the govulncheck Github Action will run with the
+[latest version of Go](https://go.dev/doc/install) and analyze all packages in
+the provided Go module. Assuming you have the latest Go version installed
+locally, this is equivalent to running the following on your command line:
 
-```govulncheck ./...```
+```
+$ govulncheck ./...
+```
 
-If you would like to specify a specific version of Go to use or a different
-package path to run govulncheck against then you can do so by adding the
-following step to your workflow:
+To specify a specific Go version or
+[package pattern](https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns),
+use the following syntax:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v1
+  uses: golang/govulncheck-action@v0.1.0
   with:
-     go-version-input: 1.XX
-     go-package: ./...
+     go-version-input: <your-Go-version>
+     go-package: <your-package-pattern>
 ```
 
-Below is a full example of a workflow that runs govulncheck against a simple
+For example, the code snippet below can be used to run govulncheck against a
 repository on every push:
 
 ```yaml
@@ -47,21 +52,32 @@ jobs:
     name: Run govulncheck
     steps:
       - id: govulncheck
-        uses: golang/govulncheck-action@v1
+        uses: golang/govulncheck-action@v0.1.0
         with:
-           go-version-input: 1.20.3
+           go-version-input: 1.20.4
+           go-package: ./...
 ```
-When this workflow finds a vulnerability you will see an error in the Run
-govulncheck job like the one below. The output contains information about the
-vulnerability and how to fix it:
+When a vulnerability is found, an error will be displayed for that
+[GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow)
+with information about the vulnerability and how to fix it. For example:
 
 ![image](https://github.com/bkessler-go/prototype-repo/assets/107496148/932a2e5c-730e-4583-90f3-edab3ca06f60)
 
-## Report Issues / Send Patches
+## Contributing
 
-This repository uses Gerrit for code changes. To learn how to submit changes to
-this repository, see https://go.dev/doc/contribute.html.
+Our canonical Git repository is located at
+https://go.googlesource.com/govulncheck-action. There is a mirror of the
+repository at https://github.com/golang/govulncheck-action. See
+https://go.dev/doc/contribute.html for details on how to contribute.
+
+## Feedback
 
 The main issue tracker for the time repository is located at
-https://github.com/golang/go/issues. Prefix your issue with
-"x/govulncheck-action:" in the subject line, so it is easy to find.
+
+If you want to report a bug or have a feature suggestion, please file an issue
+at https://github.com/golang/go/issues, prefixed with `govulncheck-action:` in the title.
+
+## License
+
+Unless otherwise noted, the Go source files are distributed under the BSD-style
+license found in the [LICENSE](LICENSE) file.

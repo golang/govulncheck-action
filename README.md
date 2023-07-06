@@ -16,7 +16,7 @@ To use the govulncheck GitHub Action add the following step to your workflow:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v0.1.0
+  uses: golang/govulncheck-action@v0.2.0
 ```
 
 By default the govulncheck Github Action will run with the
@@ -34,7 +34,7 @@ use the following syntax:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v0.1.0
+  uses: golang/govulncheck-action@v0.2.0
   with:
      go-version-input: <your-Go-version>
      go-package: <your-package-pattern>
@@ -52,7 +52,7 @@ jobs:
     name: Run govulncheck
     steps:
       - id: govulncheck
-        uses: golang/govulncheck-action@v0.1.0
+        uses: golang/govulncheck-action@v0.2.0
         with:
            go-version-input: 1.20.4
            go-package: ./...

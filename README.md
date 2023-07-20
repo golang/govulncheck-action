@@ -40,6 +40,15 @@ use the following syntax:
      go-package: <your-package-pattern>
 ```
 
+To use `go.mod` or `go.work` to specify the version, use the following syntax ([further reading](https://github.com/actions/setup-go#getting-go-version-from-the-gomod-file)):
+```yaml
+- id: govulncheck
+  uses: golang/govulncheck-action@v1
+  with:
+     go-version-file: <your-go-mod-or-work> # 'go.mod' or 'go.work'
+     go-package: <your-package-pattern>
+```
+
 For example, the code snippet below can be used to run govulncheck against a
 repository on every push:
 

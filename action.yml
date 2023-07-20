@@ -5,6 +5,9 @@ inputs:
     description: 'Version of Go to use for govulncheck'
     required: false
     default: '>=1.19.0'
+  go-version-file:  # look at a go version file to user for govulncheck
+    description: 'Path to the go.mod or go.work file.' # see: https://github.com/actions/setup-go#getting-go-version-from-the-gomod-file
+    required: false
   check-latest:
     description: 'Set this option to true if you want the action to always check for the latest available Go version that satisfies the version spec'
     required: false
@@ -24,6 +27,7 @@ runs:
     - uses: actions/setup-go@v4.0.0
       with:
         go-version: ${{ inputs.go-version-input }}
+        go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
         cache: ${{ inputs.cache }}
     - name: Install govulncheck

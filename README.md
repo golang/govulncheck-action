@@ -28,7 +28,7 @@ locally, this is equivalent to running the following on your command line:
 $ govulncheck ./...
 ```
 
-To specify a specific Go version or
+To specify a specific Go version, directory in which to run govulncheck, or
 [package pattern](https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns),
 use the following syntax:
 
@@ -37,6 +37,7 @@ use the following syntax:
   uses: golang/govulncheck-action@v1
   with:
      go-version-input: <your-Go-version>
+     work-dir: <your-working-directory>
      go-package: <your-package-pattern>
 ```
 

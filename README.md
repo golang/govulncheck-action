@@ -37,7 +37,6 @@ use the following syntax:
   uses: golang/govulncheck-action@v1
   with:
      go-version-input: <your-Go-version>
-     work-dir: <your-working-directory>
      go-package: <your-package-pattern>
 ```
 
@@ -58,6 +57,15 @@ jobs:
            go-version-input: 1.20.6
            go-package: ./...
 ```
+
+govulncheck Github Action accepts several other optional inputs:
+
+```yaml
+work-dir: directory in which to run govulncheck, default '.'
+repo-checkout: checkout the repository, default true
+check-latest: check for the latest Go version, default false
+```
+
 When a vulnerability is found, an error will be displayed for that
 [GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow)
 with information about the vulnerability and how to fix it. For example:

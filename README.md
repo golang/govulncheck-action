@@ -64,7 +64,10 @@ govulncheck Github Action accepts several other optional inputs:
 work-dir: directory in which to run govulncheck, default '.'
 repo-checkout: checkout the repository, default true
 check-latest: check for the latest Go version, default false
+go-version-file: go.mod or go.work file specifying Go version, default ''
 ```
+The precedence for inputs `go-version-input`, `go-version-file`, and `check-latest`
+specifying Go version is inherited from [actions/setup-go](https://github.com/actions/setup-go).
 
 When a vulnerability is found, an error will be displayed for that
 [GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow)

@@ -27,6 +27,10 @@ inputs:
   go-version-file:
     description: 'Path to the go.mod or go.work file.'
     required: false
+  govulncheck-version:
+    description: 'Version of govulncheck to install'
+    required: true
+    default: 'latest'
 runs:
   using: "composite"
   steps:
@@ -39,7 +43,7 @@ runs:
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.cache }}
     - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      run: go install golang.org/x/vuln/cmd/govulncheck@${{ inputs.govulncheck-version }}
       shell: bash
     - name: Run govulncheck
       run: govulncheck -C ${{ inputs.work-dir }} ${{ inputs.go-package }}

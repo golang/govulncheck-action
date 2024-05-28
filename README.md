@@ -65,11 +65,20 @@ work-dir: directory in which to run govulncheck, default '.'
 repo-checkout: checkout the repository, default true
 check-latest: check for the latest Go version, default false
 go-version-file: go.mod or go.work file specifying Go version, default ''
+output-format: the format of govulncheck output ('text', 'json', or 'sarif'), default 'text'
+output-file: the file to which the output is redirected, default '' (no
+redirection)
 ```
 The precedence for inputs `go-version-input`, `go-version-file`, and `check-latest`
 specifying Go version is inherited from [actions/setup-go](https://github.com/actions/setup-go).
 
-When a vulnerability is found, an error will be displayed for that
+The govulncheck-action follows the exit codes of govulncheck command.
+Specifying the output format 'json' or 'sarif' will return success even if
+there are some vulnerabilities detected. See
+[here](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck#hdr-Exit_codes)
+for more information.
+
+When a vulnerability is found with 'text' output format, an error will be displayed for that
 [GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow)
 with information about the vulnerability and how to fix it. For example:
 

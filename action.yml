@@ -13,6 +13,10 @@ inputs:
     description: 'Used to specify whether Go caching is needed. Set to true, if you would like to enable caching.'
     required: false
     default: true
+  cache-dependency-path:
+    description: 'Used to specify the path to a dependency file (for monorepos) - go.sum'
+    required: false
+    default: ''
   go-package:
     description: 'Go Package to scan with govulncheck'
     required: false
@@ -47,6 +51,7 @@ runs:
         check-latest: ${{ inputs.check-latest }}
         go-version-file: ${{ inputs.go-version-file }}
         cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
     - name: Install govulncheck
       run: go install golang.org/x/vuln/cmd/govulncheck@latest
       shell: bash

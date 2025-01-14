@@ -64,13 +64,16 @@ govulncheck GitHub Action accepts several other optional inputs:
 work-dir: directory in which to run govulncheck, default '.'
 repo-checkout: checkout the repository, default true
 check-latest: check for the latest Go version, default false
+cache: specify if caching is needed, default true
+cache-dependency-path: specify path to go.sum file (for monorepos), default ''
 go-version-file: go.mod or go.work file specifying Go version, default ''
 output-format: the format of govulncheck output ('text', 'json', or 'sarif'), default 'text'
 output-file: the file to which the output is redirected, default '' (no
 redirection)
 ```
-The precedence for inputs `go-version-input`, `go-version-file`, and `check-latest`
-specifying Go version is inherited from [actions/setup-go](https://github.com/actions/setup-go).
+The precedence for inputs `go-version-input`, `go-version-file`, `check-latest`,
+`cache`, and `cache-dependency-path` specifying Go version and caches is inherited
+from [actions/setup-go](https://github.com/actions/setup-go).
 
 The govulncheck-action follows the exit codes of govulncheck command.
 Specifying the output format 'json' or 'sarif' will return success even if

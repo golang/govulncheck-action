@@ -19,7 +19,7 @@ To use the govulncheck GitHub Action add the following step to your workflow:
   uses: golang/govulncheck-action@v1
 ```
 
-By default the govulncheck Github Action will run with the
+By default the govulncheck GitHub Action will run with the
 [latest version of Go](https://go.dev/doc/install) and analyze all packages in
 the provided Go module. Assuming you have the latest Go version installed
 locally, this is equivalent to running the following on your command line:
@@ -58,7 +58,7 @@ jobs:
            go-package: ./...
 ```
 
-govulncheck Github Action accepts several other optional inputs:
+govulncheck GitHub Action accepts several other optional inputs:
 
 ```yaml
 work-dir: directory in which to run govulncheck, default '.'

@@ -99,7 +99,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - id: govulncheck
-        uses: nicholas-fedor/govulncheck-action@v1
+        uses: nicholas-fedor/govulncheck-action@master
         with:
           output-format: sarif
           output-file: ${{ env.OUTPUT_FILE }}

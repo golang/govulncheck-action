@@ -9,7 +9,7 @@ To use the govulncheck GitHub Action add the following step to your workflow:
 
   ```yaml
   - id: govulncheck
-    uses: nicholas-fedor/govulncheck-action@v1
+    uses: nicholas-fedor/govulncheck-action@master
   ```
 
 By default the govulncheck Github Action will run with the [latest version of Go](https://go.dev/doc/install) and analyze all packages in the provided Go module.

@@ -50,7 +50,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - if: inputs.repo-checkout != "false"
+    - if: inputs.repo-checkout != 'false'
       uses: actions/checkout@v4.2.2
 
     - uses: actions/setup-go@v5.4.0
@@ -64,17 +64,17 @@ runs:
       run: go install golang.org/x/vuln/cmd/govulncheck@latest
       shell: bash
 
-    - if: inputs.output-file == ""
+    - if: inputs.output-file == ''
       name: Run govulncheck
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }}
       shell: bash
 
-    - if: inputs.output-file != ""
+    - if: inputs.output-file != ''
       name: Run govulncheck and save to file
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }} > ${{ inputs.output-file }}
       shell: bash
 
-    - if: inputs.output-format == "sarif"
+    - if: inputs.output-format == 'sarif'
       name: Fix SARIF format
       run: yq --inplace --output-format json '.runs |= map ({"results":[]} + .)' ${{ inputs.output-file }}
       shell: bash

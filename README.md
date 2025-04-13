@@ -63,7 +63,7 @@ Optional inputs:
 
 Example GitHub workflow that uploads results to [CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql):
 
-  ```yaml
+```yaml
 ---
 name: Run govulncheck
 on:
@@ -110,7 +110,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ env.OUTPUT_FILE }}
-  ```
+```
 
 The precedence for specifying the Go version via the inputs `go-version-input`, `go-version-file`, and `check-latest` is inherited from [actions/setup-go](https://github.com/actions/setup-go).
 

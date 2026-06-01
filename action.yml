@@ -55,6 +55,9 @@ runs:
     - name: Install govulncheck
       run: go install golang.org/x/vuln/cmd/govulncheck@latest
       shell: bash
+      env:
+        GOOS: ''
+        GOARCH: ''
     - if: inputs.output-file == ''
       name: Run govulncheck
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }}

@@ -40,6 +40,17 @@ inputs:
     description: 'The file to which the govulncheck output is saved'
     required: false
     default: ''
+  allow-file:
+    description: >-
+      Path to a file listing accepted advisory IDs to ignore (one ID per line,
+      e.g. "GO-2025-3547"; blank lines and "#" comments are ignored). When set,
+      govulncheck runs in JSON mode and the action fails only on reachable
+      ("called") advisories whose ID is NOT listed - letting you risk-accept a
+      reachable advisory that has no upstream fix yet, with an explicit,
+      version-controlled justification. When empty (the default), behaviour is
+      unchanged: any reachable advisory fails the run.
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -55,11 +66,67 @@ runs:
     - name: Install govulncheck
       run: go install golang.org/x/vuln/cmd/govulncheck@latest
       shell: bash
-    - if: inputs.output-file == ''
+    - if: inputs.allow-file == '' && inputs.output-file == ''
       name: Run govulncheck
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }}
       shell: bash
-    - if: inputs.output-file != ''
+    - if: inputs.allow-file == '' && inputs.output-file != ''
       name: Run govulncheck and save to file
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }} > ${{ inputs.output-file }}
       shell: bash
+    - if: inputs.allow-file != ''
+      name: Run govulncheck with allowlist
+      shell: bash
+      env:
+        GOVULNCHECK_WORK_DIR: ${{ inputs.work-dir }}
+        GOVULNCHECK_GO_PACKAGE: ${{ inputs.go-package }}
+        GOVULNCHECK_ALLOW_FILE: ${{ inputs.allow-file }}
+        GOVULNCHECK_OUTPUT_FILE: ${{ inputs.output-file }}
+      run: |
+        set -euo pipefail
+        # JSON mode exits 0 even when vulnerabilities are found, so a non-zero exit
+        # here is an OPERATIONAL error (e.g. packages failed to load) and must fail
+        # the run loudly rather than be mistaken for "no vulnerabilities".
+        rc=0
+        govulncheck -C "$GOVULNCHECK_WORK_DIR" -format json "$GOVULNCHECK_GO_PACKAGE" > govulncheck.json || rc=$?
+        if [ "$rc" -ne 0 ]; then
+          echo "::error::govulncheck failed to run (exit $rc) - operational error, not a scan result."
+          exit "$rc"
+        fi
+        # Preserve the raw JSON for the caller when an output file was requested.
+        if [ -n "$GOVULNCHECK_OUTPUT_FILE" ]; then
+          cp govulncheck.json "$GOVULNCHECK_OUTPUT_FILE"
+        fi
+        # Reachable ("called") advisories: a finding whose top trace frame is a
+        # function (mirrors govulncheck's own definition of a called vulnerability).
+        called="$(jq -r 'select(.finding).finding | select(.trace[0].function != null and .trace[0].function != "") | .osv' govulncheck.json | sort -u)"
+        # Accepted advisory IDs from the allowlist file ('#' comments and blanks ignored).
+        allow=""
+        if [ -f "$GOVULNCHECK_ALLOW_FILE" ]; then
+          allow="$(sed 's/#.*//' "$GOVULNCHECK_ALLOW_FILE" | tr -s ' \t' '\n' | grep -E '^GO-[0-9]{4}-[0-9]+$' | sort -u || true)"
+        else
+          echo "::warning::allow-file '$GOVULNCHECK_ALLOW_FILE' not found; treating the allowlist as empty (strict)."
+        fi
+        # Summarise every reachable advisory; the blocking set is reachable minus allowlisted.
+        blocking=""
+        if [ -n "$called" ]; then
+          echo "Reachable vulnerabilities:"
+          for id in $called; do
+            fixed="$(jq -r --arg id "$id" 'select(.finding).finding | select(.osv==$id) | .fixed_version // empty' govulncheck.json | grep -v '^$' | head -n1 || true)"
+            [ -z "$fixed" ] && fixed="N/A"
+            if printf '%s\n' "$allow" | grep -qx "$id"; then
+              echo "  - $id (fixed: $fixed) - ALLOWLISTED"
+            else
+              echo "  - $id (fixed: $fixed) - BLOCKING"
+              blocking="$blocking $id"
+            fi
+          done
+        else
+          echo "No reachable vulnerabilities found."
+        fi
+        if [ -n "$blocking" ]; then
+          echo "::error::Reachable vulnerabilities not accepted in $GOVULNCHECK_ALLOW_FILE:$blocking"
+          echo "Bump the affected module (preferred), drop the call, or add the ID to $GOVULNCHECK_ALLOW_FILE with a justification."
+          exit 1
+        fi
+        echo "✅ No blocking vulnerabilities (allowlisted advisories, if any, were explicitly accepted)."

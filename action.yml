@@ -64,7 +64,11 @@ runs:
         cache: ${{ inputs.cache }}
         cache-dependency-path: ${{ inputs.cache-dependency-path }}
     - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      # Pinned off @latest: govulncheck v1.4.0 panics ("ForEachElement called on
+      # type containing *types.TypeParam") on modules using generics under Go 1.26,
+      # crashing the scan (exit 2) on every consumer. v1.3.0 is the last release
+      # that runs cleanly. Re-pin to a newer tag once x/vuln fixes the regression.
+      run: go install golang.org/x/vuln/cmd/govulncheck@v1.3.0
       shell: bash
     - if: inputs.allow-file == '' && inputs.output-file == ''
       name: Run govulncheck

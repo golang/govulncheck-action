@@ -70,10 +70,42 @@ go-version-file: go.mod or go.work file specifying Go version, default ''
 output-format: the format of govulncheck output ('text', 'json', or 'sarif'), default 'text'
 output-file: the file to which the output is redirected, default '' (no
 redirection)
+allow-file: path to a file listing accepted advisory IDs to ignore, default ''
+(strict; see below)
 ```
 The precedence for inputs `go-version-input`, `go-version-file`, `check-latest`,
 `cache`, and `cache-dependency-path` specifying Go version and caches is inherited
 from [actions/setup-go](https://github.com/actions/setup-go).
+
+### Risk-accepting advisories with `allow-file`
+
+govulncheck only reports vulnerabilities your code actually *calls* (call-graph
+reachability), so the action trips only on genuinely reachable advisories. Usually
+you clear one by bumping the affected module or dropping the call. But some
+reachable advisories have **no upstream fix** (`Fixed in: N/A`) - for example a
+server-side symbol a CLI links transitively. A hard gate then blocks every build
+indefinitely, through no fault of the change.
+
+Set `allow-file` to a file of accepted advisory IDs to risk-accept those, with an
+explicit, version-controlled justification, while still failing on every other
+reachable advisory:
+
+```yaml
+- uses: golang/govulncheck-action@v1
+  with:
+    go-version-file: go.mod
+    allow-file: .govulncheck-allow.txt
+```
+
+```
+# .govulncheck-allow.txt - one accepted advisory ID per line; '#' comments and blanks ignored.
+GO-2025-3547  # k8s apiserver race - this is a client CLI, not an apiserver (owner, 2026-06)
+```
+
+When `allow-file` is set the action runs govulncheck in JSON mode and fails only on
+reachable advisories **not** listed (a missing file is treated as an empty
+allowlist, i.e. strict). When `allow-file` is empty (the default) behaviour is
+unchanged: any reachable advisory fails the run.
 
 The govulncheck-action follows the exit codes of govulncheck command.
 Specifying the output format 'json' or 'sarif' will return success even if

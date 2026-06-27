@@ -71,6 +71,9 @@ runs:
       run: go install golang.org/x/vuln/cmd/govulncheck@v1.3.0
       shell: bash
     - if: inputs.allow-file == '' && inputs.output-file == ''
+      env:
+        GOOS: ''
+        GOARCH: ''
       name: Run govulncheck
       run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }}
       shell: bash

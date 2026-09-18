@@ -40,6 +40,10 @@ inputs:
     description: 'The file to which the govulncheck output is saved'
     required: false
     default: ''
+  allow-file:
+    description: 'Path to a file listing accepted reachable vulnerability IDs'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -58,7 +62,7 @@ runs:
       env:
         GOOS: ''
         GOARCH: ''
-    - if: inputs.output-file == ''
+    - if: inputs.allow-file == '' && inputs.output-file == ''
       name: Run govulncheck
       run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" "$GO_PACKAGE"
       shell: bash
@@ -66,7 +70,7 @@ runs:
         WORK_DIR: ${{ inputs.work-dir }}
         OUTPUT_FORMAT: ${{ inputs.output-format }}
         GO_PACKAGE: ${{ inputs.go-package }}
-    - if: inputs.output-file != ''
+    - if: inputs.allow-file == '' && inputs.output-file != ''
       name: Run govulncheck and save to file
       run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" "$GO_PACKAGE" > "$OUTPUT_FILE"
       shell: bash
@@ -75,3 +79,45 @@ runs:
         OUTPUT_FORMAT: ${{ inputs.output-format }}
         GO_PACKAGE: ${{ inputs.go-package }}
         OUTPUT_FILE: ${{ inputs.output-file }}
+    - if: inputs.allow-file != ''
+      name: Run govulncheck with accepted vulnerabilities
+      shell: bash
+      env:
+        ALLOW_FILE: ${{ inputs.allow-file }}
+        GO_PACKAGE: ${{ inputs.go-package }}
+        OUTPUT_FILE: ${{ inputs.output-file }}
+        WORK_DIR: ${{ inputs.work-dir }}
+      run: |
+        set -euo pipefail
+
+        if [ ! -f "$ALLOW_FILE" ]; then
+          echo "::error::allow-file not found: $ALLOW_FILE"
+          exit 1
+        fi
+
+        report="$(mktemp)"
+        allowed="$(mktemp)"
+        trap 'rm -f "$report" "$allowed"' EXIT
+
+        govulncheck -C "$WORK_DIR" -format json "$GO_PACKAGE" > "$report"
+        if [ -n "$OUTPUT_FILE" ]; then
+          cp "$report" "$OUTPUT_FILE"
+        fi
+
+        awk '{ sub(/\r$/, ""); sub(/#.*/, ""); if ($1 ~ /^GO-[0-9]{4}-[0-9]+$/) print $1 }' \
+          "$ALLOW_FILE" > "$allowed"
+        blocking="$(
+          jq -r --rawfile allowed "$allowed" '
+            select((.finding.trace[0].function? // "") != "")
+            | .finding.osv as $id
+            | select(($allowed | split("\n") | index($id)) == null)
+            | $id
+          ' "$report" | sort -u
+        )"
+
+        if [ -n "$blocking" ]; then
+          echo "::error::Unaccepted reachable vulnerabilities: $(echo "$blocking" | paste -sd, -)"
+          exit 3
+        fi
+
+        echo "No unaccepted reachable vulnerabilities found."

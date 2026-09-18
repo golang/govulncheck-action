@@ -70,10 +70,26 @@ go-version-file: go.mod or go.work file specifying Go version, default ''
 output-format: the format of govulncheck output ('text', 'json', or 'sarif'), default 'text'
 output-file: the file to which the output is redirected, default '' (no
 redirection)
+allow-file: path to a file listing accepted reachable vulnerability IDs,
+default ''
 ```
 The precedence for inputs `go-version-input`, `go-version-file`, `check-latest`,
 `cache`, and `cache-dependency-path` specifying Go version and caches is inherited
 from [actions/setup-go](https://github.com/actions/setup-go).
+
+Until govulncheck supports
+[native silencing](https://github.com/golang/go/issues/61211), use `allow-file`
+to accept a reviewed vulnerability that cannot yet be fixed:
+
+```
+# One GO vulnerability ID per line. Blank lines and comments are ignored.
+GO-2025-3547 # Accepted by the security team until an upstream fix is available.
+```
+
+When `allow-file` is set, the action uses JSON output and exits with status 3
+if it finds a reachable vulnerability that is not listed. If `output-file` is
+also set, it receives the raw JSON report. A missing allow file fails the
+action.
 
 The govulncheck-action follows the exit codes of govulncheck command.
 Specifying the output format 'json' or 'sarif' will return success even if

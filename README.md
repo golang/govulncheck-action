@@ -61,6 +61,7 @@ jobs:
 govulncheck GitHub Action accepts several other optional inputs:
 
 ```yaml
+test: whether to analyze test files
 work-dir: directory in which to run govulncheck, default '.'
 repo-checkout: checkout the repository, default true
 check-latest: check for the latest Go version, default false

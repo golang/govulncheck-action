@@ -21,6 +21,10 @@ inputs:
     description: 'Go Package to scan with govulncheck'
     required: false
     default: './...'
+  test:
+    description: 'Whether to analyze test files'
+    required: false
+    default: false
   work-dir:
     description: 'Directory in which to run govulncheck'
     required: false
@@ -60,18 +64,20 @@ runs:
         GOARCH: ''
     - if: inputs.output-file == ''
       name: Run govulncheck
-      run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" "$GO_PACKAGE"
+      run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" -test="$TEST" "$GO_PACKAGE"
       shell: bash
       env:
         WORK_DIR: ${{ inputs.work-dir }}
         OUTPUT_FORMAT: ${{ inputs.output-format }}
+        TEST: ${{ inputs.test }}
         GO_PACKAGE: ${{ inputs.go-package }}
     - if: inputs.output-file != ''
       name: Run govulncheck and save to file
-      run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" "$GO_PACKAGE" > "$OUTPUT_FILE"
+      run: govulncheck -C "$WORK_DIR" -format "$OUTPUT_FORMAT" -test="$TEST" "$GO_PACKAGE" > "$OUTPUT_FILE"
       shell: bash
       env:
         WORK_DIR: ${{ inputs.work-dir }}
         OUTPUT_FORMAT: ${{ inputs.output-format }}
+        TEST: ${{ inputs.test }}
         GO_PACKAGE: ${{ inputs.go-package }}
         OUTPUT_FILE: ${{ inputs.output-file }}
